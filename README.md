@@ -11,6 +11,7 @@ Usage
 ====
 
 irb/pry:
+
 ```load "./lib/ccb.rb"
 CCB::Person.search(:first_name => "e")
 ```
