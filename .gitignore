@@ -1,2 +1,4 @@
 config/ccb.yml
 .rvmrc
+Gemfile.lock
+.bundle

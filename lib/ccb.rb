@@ -1,11 +1,13 @@
 require 'httparty'
 require 'active_support'
 
+RAILS_ENV = "development" unless defined? RAILS_ENV
+
 def refresh_ccb
   load __FILE__
 end
 
-config = YAML.load(File.read("./config/ccb.yml"))
+config = YAML.load(File.read("./config/ccb.yml"))[RAILS_ENV]
 user = config["username"]
 pass = config["password"]
 BASE_URI = config["url"] unless defined? BASE_URI
