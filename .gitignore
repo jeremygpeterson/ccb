@@ -1,4 +1,11 @@
 config/ccb.yml
 .rvmrc
 Gemfile.lock
-.bundle
+.rspec
+/.bundle
+/log/*
+/tmp/*
+/db/*.sqlite3
+/coverage/
+/spec/tmp/*
+**.orig
