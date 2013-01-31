@@ -1,3 +1,13 @@
 ---
-username: USERNAME
-password: PASSWORD
+development:
+  username: USERNAME
+  password: PASSWORD
+  url: https://demochurch.ccbchurch.com/api.php
+test:
+  username: USERNAME
+  password: PASSWORD
+  url: https://demochurch.ccbchurch.com/api.php
+production:
+  username: USERNAME
+  password: PASSWORD
+  url: https://demochurch.ccbchurch.com/api.php
