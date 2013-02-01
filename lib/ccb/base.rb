@@ -1,13 +1,26 @@
 require 'active_support/hash_with_indifferent_access'
 module CCB
   class Base
+
     include HTTParty
     base_uri BASE_URI
     basic_auth(CCBAUTH[:username], CCBAUTH[:password])
 
-    def self.request(options)
-      response = self.get(self.base_uri + "?" + options.collect {|a,b| "#{a}=#{b}"}.join("&") )["ccb_api"]["response"].values[-1]
-      count = response.delete("count").to_i
+    def self.send_data(options,data)
+      options = options.collect {|a,b| "#{a}=#{b}"}.join("&")
+      response = self.post(self.base_uri + "?" + options, :body => data )
+    end
+
+    def self.request(options,fields=[])
+      options = HashWithIndifferentAccess.new options
+      fields.dup.each do |key|
+        next if key == "srv"
+        options.delete key unless fields.include?(key)
+      end
+      response = self.get(self.base_uri + "?" + options.collect {|a,b| "#{a}=#{b}"}.join("&") )
+      response = response["ccb_api"]["response"]
+      response = response.values[-1] if response.respond_to?(:values)
+      count = response.delete("count").to_i if response.respond_to? :delete
       if count > 0
         response = response[response.keys.first]
         if response.is_a? Array
@@ -17,6 +30,8 @@ module CCB
             return self.from_api(response)
         end
         return nil
+      else
+        return response
       end
     end
 
