@@ -50,6 +50,14 @@ module CCB
       args
     end
 
+    def self.find(args={})
+      if args[:id]
+        return self.from_id(args[:id])
+      else
+        return self.search(args)
+      end
+    end
+
     def self.search(args={})
       fields = %w{first_name last_name phone email street_address city state zip}.collect(&:to_sym)
       raise "Please include one of #{fields.join(', ')}" if args.keys.empty?
