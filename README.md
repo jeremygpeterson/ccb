@@ -10,10 +10,22 @@ default environment is development.
 Usage
 ====
 
+command line:
+```
+cp config/ccb_template.yml config/ccb.yml
+```
+edit config/ccb.yml to use your API user account and specify the API location for your church
+
 irb/pry:
 
 ```
 load "./lib/ccb.rb"
-CCB::Person.search(:first_name => "e")
+person = CCB::Person.find(:all).first
+person.full_name #=> "First Last"
+person.groups #=> returns an array of associated groups
+person2 = CCB::Person.create(:first_name => "Test User", :last_name => "From API") #=> Note: CCB does not have a purge/delete function for people. Don't create unnecessary profiles.
+person2.first_name #=> "Test User"
+
+CCB::Group.search #=> An array of all groups
 ```
 
