@@ -8,7 +8,10 @@ module CCB
       :attendance => "individual_attendance",
       :create => "create_individual",
       :login => "individual_id_from_login_password",
-      :from_id => "individual_profile_from_id"
+      :from_id => "individual_profile_from_id",
+      :all => "individual_profiles",
+      :destroy => "individual_inactivate",
+      :from_micr => "individual_profile_from_micr"
     } unless defined? SRV
 
     def self.create(args={})
@@ -37,6 +40,15 @@ module CCB
       retval
     end
 
+    def self.destroy(id,confirmation=false)
+      raise "Confirmation must be set to true: destroy(id,true)" unless confirmation == true
+      args = {"individual_id" => id}
+      args["srv"] = SRV[__method__]
+      puts args.inspect
+      response = self.request(args)
+
+    end
+
     def self.login(args={})
       args = args.select {|k,v| [:username,:password].include?(k)}
       args[:login] = args.delete :username
@@ -50,12 +62,28 @@ module CCB
       args
     end
 
+    def self.all(since=nil)
+      args = {"srv" => SRV[__method__]}
+      response = self.request(args)
+    end
+
     def self.find(args={})
-      if args[:id]
+      if args.is_a?(Symbol) && args == :all
+        return self.all
+      elsif args.is_a?(Hash) && args[:id]
         return self.from_id(args[:id])
+      elsif args.is_a?(Hash) && (args[:routing_number] || args[:account_number])
+        return self.from_micr(args)
       else
         return self.search(args)
       end
+    end
+
+    def self.from_micr(args={})
+      fields = %w{routing_number account_number}.collect(&:to_sym)
+      raise "Please include both of #{fields.join(', ')}" unless [args.keys].flatten.sort == fields.sort
+      args["srv"] = SRV[__method__]
+      response = self.request(args, fields)
     end
 
     def self.search(args={})

@@ -21,7 +21,7 @@ module CCB
       response = response["ccb_api"]["response"]
       response = response.values[-1] if response.respond_to?(:values)
       count = response.delete("count").to_i if response.respond_to? :delete
-      if count > 0
+      if count && count > 0
         response = response[response.keys.first]
         if response.is_a? Array
             response = response.collect {|item| self.from_api(item)}
@@ -29,7 +29,6 @@ module CCB
         else
             return self.from_api(response)
         end
-        return nil
       else
         return response
       end
@@ -51,6 +50,17 @@ module CCB
       args = args.merge(new_args[:info]) if new_args[:info]
       new_args[:info] = args
       return self.new(new_args)
+    end
+
+    private
+
+    def from_ccb_hash(attribute, key)
+      value = self.instance_variable_get("@" + attribute.to_s)
+      if value && value.is_a?(Hash)
+        value = value[key]
+      end
+      self.instance_variable_set("@#{attribute}", value) if value
+
     end
   end
 end
