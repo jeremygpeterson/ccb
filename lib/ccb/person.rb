@@ -2,6 +2,12 @@ module CCB
   class Person < CCB::Base
     attr_accessor :id, :first_name, :last_name, :phone, :email, :street_address, :city, :state, :zip, :info, :image, :family_position, :giving_number, :gender, :birthday, :anniversary, :active, :created, :modified, :receive_email_from_church, :marital_status, :phones, :attendance
 
+    tracking_methods = [:first_name, :last_name, :email, :street_address, :city, :state, :zip, :info, :image, :family_position, :giving_number, :gender, :birthday, :anniversary, :active, :receive_email_from_church, :marital_status]
+    #define_attribute_methods  tracking_methods
+    tracking_methods.each do |method|
+      assign_attribute method
+    end
+
     SRV = {
       :search => "individual_search",
       :groups => "individual_groups",

@@ -1,5 +1,6 @@
 require 'httparty'
 require 'active_support'
+require 'active_model'
 
 RAILS_ENV = "development" unless defined? RAILS_ENV
 

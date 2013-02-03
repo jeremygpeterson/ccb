@@ -2,9 +2,33 @@ require 'active_support/hash_with_indifferent_access'
 module CCB
   class Base
 
+    include ActiveModel::Validations
+    include ActiveModel::Conversion
+    include ActiveModel::Dirty 
+    extend ActiveModel::Naming
+    extend ActiveModel::Callbacks
+
     include HTTParty
     base_uri BASE_URI
     basic_auth(CCBAUTH[:username], CCBAUTH[:password])
+
+    def self.assign_attribute(name, value=nil) 
+      self.__send__(:define_attribute_methods, [name.to_s.underscore.to_sym]) 
+      self.create_method(name.to_s.underscore.to_sym) do 
+        instance_variable_get("@#{name.to_s.underscore}") 
+      end #unless self.respond_to? name.to_s.underscore.to_sym 
+      self.create_method("#{name.to_s.underscore}=") do |value| 
+        send("#{name.to_s.underscore}_will_change!".to_sym) unless value == instance_variable_get("@#{name.to_s.underscore}") 
+        instance_variable_set("@#{name.to_s.underscore}",value) 
+      end
+    #self.__send__("#{name.to_s.underscore}=".to_sym, value) 
+    end
+
+
+    def self.create_method( name, &block )
+      self.send( :define_method, name, &block )
+    end
+
 
     def self.send_data(options,data)
       options = options.collect {|a,b| "#{a}=#{b}"}.join("&")
