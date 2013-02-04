@@ -64,6 +64,7 @@ module CCB
         send(:instance_variable_set,"@#{field_name.to_s}", args[field_name]) if self.respond_to? field_name
       end
       @info = args[:info] || {}
+      @changed_attributes = {}
     end
 
     def self.from_api(args={})

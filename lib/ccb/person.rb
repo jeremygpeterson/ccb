@@ -17,7 +17,8 @@ module CCB
       :from_id => "individual_profile_from_id",
       :all => "individual_profiles",
       :destroy => "individual_inactivate",
-      :from_micr => "individual_profile_from_micr"
+      :from_micr => "individual_profile_from_micr",
+      :update => "update_individual"
     } unless defined? SRV
 
     def self.create(args={})
@@ -31,9 +32,38 @@ module CCB
     end
 
     def attendance
-     args = {"srv" => SRV[__method__], "individual_id" => self.id}
+      args = {"srv" => SRV[__method__], "individual_id" => self.id}
       response = CCB::Person::Attendance.request(args)
       retval = response
+    end
+
+    def persisted?
+      false
+    end
+
+    def save
+      if valid?
+        if id && created
+          retval = update
+          @previously_changed = changes
+          @changed_attributes.clear
+          return retval
+        elsif id.nil?
+          @changed_attributes.clear
+          args = {}
+          instance_variables.each do |var|
+            var = var.to_s
+            ignored_atts = %w{@errors @info @changed_attributes @validation_context}
+            next if ignored_atts.include?(var)
+            key = var[1..-1]
+            args[key] = instance_variable_get(var)
+          end
+          @previously_changed = changes
+          @changed_attributes.clear
+          return self.class.create(args)
+        end
+      else
+      end
     end
 
     def groups
@@ -107,5 +137,18 @@ module CCB
       args["individual_id"] = id
       response = self.request(args, fields)
     end
+
+  private
+
+    def update
+      args = {"srv" => SRV[__method__], "individual_id" => self.id}
+      body = {}
+      changes.collect do |k,v|
+        body[k] = v[1]
+      end
+      response = self.class.send_data(args,body)
+      self.class.from_api(response["ccb_api"]["response"]["individuals"]["individual"])
+    end
+
   end
 end
