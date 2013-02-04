@@ -43,7 +43,7 @@ module CCB
 
     def save
       if valid?
-        if id && created
+        if id && created && changed?
           retval = update
           @previously_changed = changes
           @changed_attributes.clear
