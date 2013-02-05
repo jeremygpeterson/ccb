@@ -31,7 +31,8 @@ module CCB
 
 
     def self.send_data(options,data)
-      options = options.collect {|a,b| "#{a}=#{b}"}.join("&")
+      puts data.inspect
+      options = options.collect {|a,b| "#{a}=#{URI.encode_www_form_component(b)}"}.join("&")
       response = self.post(self.base_uri + "?" + options, :body => data )
     end
 
@@ -41,7 +42,7 @@ module CCB
         next if key == "srv"
         options.delete key unless fields.include?(key)
       end
-      response = self.get(self.base_uri + "?" + options.collect {|a,b| "#{a}=#{b}"}.join("&") )
+      response = self.get(self.base_uri + "?" + options.collect {|a,b| "#{a}=#{URI.encode_www_form_component(b)}"}.join("&") )
       response = response["ccb_api"]["response"]
       response = response.values[-1] if response.respond_to?(:values)
       count = response.delete("count").to_i if response.respond_to? :delete
