@@ -31,8 +31,7 @@ module CCB
 
 
     def self.send_data(options,data)
-      puts data.inspect
-      options = options.collect {|a,b| "#{a}=#{URI.encode_www_form_component(b)}"}.join("&")
+      options = options.collect {|a,b| "#{a}=#{b}"}.join("&")
       response = self.post(self.base_uri + "?" + options, :body => data )
     end
 
