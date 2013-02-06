@@ -18,8 +18,17 @@ module CCB
       :all => "individual_profiles",
       :destroy => "individual_inactivate",
       :from_micr => "individual_profile_from_micr",
-      :update => "update_individual"
+      :update => "update_individual",
+      :merged_profiles => "merged_individuals"
     } unless defined? SRV
+
+    def self.merged_profiles(args={})
+      svc = {"srv" => SRV[__method__]}
+      args = args.merge svc
+      response = request(args)
+      #self.from_api(response["ccb_api"]["response"]["individuals"]["individual"])
+      return response
+    end
 
     def self.create(args={})
       options = {"srv" => SRV[__method__]}
