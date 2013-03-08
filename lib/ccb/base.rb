@@ -12,24 +12,6 @@ module CCB
     base_uri BASE_URI
     basic_auth(CCBAUTH[:username], CCBAUTH[:password])
 
-    def self.assign_attribute(name, value=nil) 
-      self.__send__(:define_attribute_methods, [name.to_s.underscore.to_sym]) 
-      self.create_method(name.to_s.underscore.to_sym) do 
-        instance_variable_get("@#{name.to_s.underscore}") 
-      end #unless self.respond_to? name.to_s.underscore.to_sym 
-      self.create_method("#{name.to_s.underscore}=") do |value| 
-        send("#{name.to_s.underscore}_will_change!".to_sym) unless value == instance_variable_get("@#{name.to_s.underscore}") 
-        instance_variable_set("@#{name.to_s.underscore}",value) 
-      end
-    #self.__send__("#{name.to_s.underscore}=".to_sym, value) 
-    end
-
-
-    def self.create_method( name, &block )
-      self.send( :define_method, name, &block )
-    end
-
-
     def self.send_data(options,data)
       options = options.collect {|a,b| "#{a}=#{b}"}.join("&")
       response = self.post(self.base_uri + "?" + options, :body => data )
@@ -63,6 +45,13 @@ module CCB
       fields.each do |field_name|
         send(:instance_variable_set,"@#{field_name.to_s}", args[field_name]) if self.respond_to? field_name
       end
+      ["owner", "modifier"].each do |att|
+        var = instance_variable_get("@#{att}")
+        if var
+          obj = CCB::Person.new(:id => var["id"], :full_name => var["__content__"])
+          instance_variable_set("@#{att}", obj)
+        end
+      end
       @info = args[:info] || {}
       @changed_attributes = {}
     end
@@ -87,5 +76,23 @@ module CCB
       self.instance_variable_set("@#{attribute}", value) if value
 
     end
-  end
-end
+
+    def self.assign_attribute(name, value=nil) 
+      self.__send__(:define_attribute_methods, [name.to_s.underscore.to_sym]) 
+      self.create_method(name.to_s.underscore.to_sym) do 
+        instance_variable_get("@#{name.to_s.underscore}") 
+      end #unless self.respond_to? name.to_s.underscore.to_sym 
+      self.create_method("#{name.to_s.underscore}=") do |value| 
+        send("#{name.to_s.underscore}_will_change!".to_sym) unless value == instance_variable_get("@#{name.to_s.underscore}") 
+        instance_variable_set("@#{name.to_s.underscore}",value) 
+      end
+    #self.__send__("#{name.to_s.underscore}=".to_sym, value) 
+    end
+
+
+    def self.create_method( name, &block )
+      self.send( :define_method, name, &block )
+    end
+
+  end # class
+end # module

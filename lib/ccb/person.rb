@@ -1,6 +1,6 @@
 module CCB
   class Person < CCB::Base
-    attr_accessor :id, :first_name, :last_name, :phone, :email, :street_address, :city, :state, :zip, :info, :image, :family_position, :giving_number, :gender, :birthday, :anniversary, :active, :created, :modified, :receive_email_from_church, :marital_status, :phones, :attendance
+    attr_accessor :id, :first_name, :last_name, :phone, :email, :street_address, :city, :state, :zip, :info, :image, :family_position, :giving_number, :gender, :birthday, :anniversary, :active, :created, :modified, :receive_email_from_church, :marital_status, :phones, :attendance, :addresses
 
     tracking_methods = [:first_name, :last_name, :email, :street_address, :city, :state, :zip, :info, :image, :family_position, :giving_number, :gender, :birthday, :anniversary, :active, :receive_email_from_church, :marital_status]
     #define_attribute_methods  tracking_methods
@@ -19,8 +19,26 @@ module CCB
       :destroy => "individual_inactivate",
       :from_micr => "individual_profile_from_micr",
       :update => "update_individual",
+      :add_position => "add_individual_to_position",
       :merged_profiles => "merged_individuals"
     } unless defined? SRV
+
+    def initialize(args={})
+      super
+      # parse the addresses returned in the API
+      unless @addresses.blank?
+        addrs = @addresses.dup
+        @addresses = []
+        addrs.each do |k,addr|
+          puts addr[0].inspect
+          @addresses << CCB::Address.from_api(addr[0])
+        end
+      end
+    end
+
+    def mailing_address
+      addresses.detect {|addr| addr.type == "mailing"}
+    end
 
     def self.merged_profiles(args={})
       svc = {"srv" => SRV[__method__]}
@@ -73,6 +91,19 @@ module CCB
         end
       else
       end
+    end
+
+    def self.add_position(args)
+      # status values are: add, requesting, undecided, declined, informed
+      raise "status, person_id and position_id are both requried" unless [:status, :person_id, :position_id].all? {|k| args.keys.include?(k)}
+      args["id"] = args.delete "person_id"
+      options = {"srv" => SRV[__method__]}
+      response = send_data(options,args)
+    end
+
+    def add_position(position_id)
+      position_id = position_id.id if position_id.is_a?(CCB::Position)
+      self.class.add_position(:person_id => self.id, :position_id => position_id)
     end
 
     def groups
